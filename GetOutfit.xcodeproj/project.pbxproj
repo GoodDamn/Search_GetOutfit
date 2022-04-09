@@ -17,6 +17,7 @@
 		2B7328D927F3B9C9001E1141 /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7328D827F3B9C9001E1141 /* FilterViewController.swift */; };
 		2B7328DC27F507BB001E1141 /* colorCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7328DB27F507BB001E1141 /* colorCell.swift */; };
 		2B7328DF27F7B332001E1141 /* RangeSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7328DE27F7B332001E1141 /* RangeSlider.swift */; };
+		2BB0C6E128022561008A8956 /* SegmentedRangeSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB0C6E028022561008A8956 /* SegmentedRangeSlider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		2B7328D827F3B9C9001E1141 /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
 		2B7328DB27F507BB001E1141 /* colorCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = colorCell.swift; sourceTree = "<group>"; };
 		2B7328DE27F7B332001E1141 /* RangeSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeSlider.swift; sourceTree = "<group>"; };
+		2BB0C6E028022561008A8956 /* SegmentedRangeSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SegmentedRangeSlider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +77,7 @@
 				2B7328D827F3B9C9001E1141 /* FilterViewController.swift */,
 				2B7328DB27F507BB001E1141 /* colorCell.swift */,
 				2B7328DE27F7B332001E1141 /* RangeSlider.swift */,
+				2BB0C6E028022561008A8956 /* SegmentedRangeSlider.swift */,
 			);
 			path = GetOutfit;
 			sourceTree = "<group>";
@@ -150,6 +153,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B558A5D27EFA6710038DBDA /* ViewController.swift in Sources */,
+				2BB0C6E128022561008A8956 /* SegmentedRangeSlider.swift in Sources */,
 				2B7328D627F24C7E001E1141 /* searchCell.swift in Sources */,
 				2B558A5927EFA6710038DBDA /* AppDelegate.swift in Sources */,
 				2B558A5B27EFA6710038DBDA /* SceneDelegate.swift in Sources */,

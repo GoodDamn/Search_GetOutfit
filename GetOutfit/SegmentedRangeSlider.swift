@@ -7,22 +7,22 @@
 
 import UIKit
 
-class RangeSlider: UIControl{
+class SegmentedRangeSlider: UIControl{
     
     private var lowerValue: CGFloat = 0.2;
     private var upperValue: CGFloat = 0.8;
     
-    var maxDecimal: CGFloat = 600_000;
     
-    var minValue: Int = 0{
+    var segmentsArray:[String] = ["1","2"];
+    var minValue: String = "1"{
         didSet{
-            lowerValue = CGFloat(minValue)/maxDecimal;
+            lowerValue = CGFloat((segmentsArray.firstIndex(of: minValue) ?? 0)/segmentsArray.count);
             updateLayerFrames();
         }
     };
-    var maxValue: Int = 1{
+    var maxValue: String = "2"{
         didSet{
-            upperValue = CGFloat(maxValue)/maxDecimal;
+            upperValue = CGFloat((segmentsArray.firstIndex(of: maxValue) ?? 1)/segmentsArray.count);
             updateLayerFrames();
         }
     };
@@ -33,10 +33,9 @@ class RangeSlider: UIControl{
     private let lowerThumb = UIImageView();
     private let lowerLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 80, height: 12));
     
-    
     private let upperThumb = UIImageView();
     private let upperLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 80, height: 12));
-    
+
     private var previousLocation = CGPoint();
 
     override var frame: CGRect{
@@ -135,7 +134,7 @@ class RangeSlider: UIControl{
     }
 }
 
-extension RangeSlider{
+extension SegmentedRangeSlider{
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self);
         
@@ -162,14 +161,15 @@ extension RangeSlider{
         if lowerThumb.isHighlighted{
             lowerValue += deltaValue;
             lowerValue = boundValue(lowerValue, toLowerValue: 0, upperValue: upperValue);
-            minValue = Int((lowerValue*maxDecimal).rounded());
-            
+            minValue = segmentsArray[Int(lowerValue*CGFloat(segmentsArray.count).rounded())];
             //rangeLayer.strokeStart = lowerValue;
         } else if upperThumb.isHighlighted{
             upperValue += deltaValue;
             upperValue = boundValue(upperValue, toLowerValue: lowerValue, upperValue: 1);
-            maxValue = Int((upperValue*maxDecimal).rounded());
-            
+            let index = Int(upperValue*CGFloat(segmentsArray.count).rounded());
+            if (index != segmentsArray.count) {
+                maxValue = segmentsArray[index];
+            }
             //rangeLayer.strokeEnd = upperValue;
         }
         

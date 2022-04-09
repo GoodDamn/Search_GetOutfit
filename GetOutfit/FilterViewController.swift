@@ -27,6 +27,8 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     @IBOutlet weak var segmentControlAsc: UISegmentedControl!;
     private let rangeSliderPrice = RangeSlider(frame: .zero),
                 rangeSliderSize = RangeSlider(frame: .zero);
+    private let segmentedRangeSlider = SegmentedRangeSlider(frame: .zero);
+    
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return colors.count;
@@ -93,26 +95,32 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
             segmentControlAsc.selectedSegmentIndex = (ord[1] == "asc" ? 0:1);
         }
         
-        rangeSliderPrice.layer.backgroundColor = UIColor.gray.cgColor;
-        rangeSliderPrice.layer.cornerRadius = 8;
-        view.addSubview(rangeSliderPrice);
+        segmentedRangeSlider.segmentsArray = ["XS","S","M","L","XL","XXL","XXXL"];
+        segmentedRangeSlider.minValue = "S";
+        segmentedRangeSlider.maxValue = "XXL";
         
-        rangeSliderSize.layer.backgroundColor = UIColor.gray.cgColor;
-        rangeSliderSize.layer.cornerRadius = 8;
-        view.addSubview(rangeSliderSize);
+        setupBackground(segmentedRangeSlider);
+        setupBackground(rangeSliderPrice);
+        setupBackground(rangeSliderSize);
         
         let prices = userDef.value(forKey: "prices") as? [Int] ?? [0,600_000];
         setValuesToRangeSlider(to: rangeSliderPrice, lower: prices[0], upper: prices[1], maxDecimal: 600_000);
         let sizes = userDef.value(forKey: "sizes") as? [Int] ?? [1,70];
         setValuesToRangeSlider(to: rangeSliderSize, lower: sizes[0], upper: sizes[1], maxDecimal: 70);
+        
+        rangeSliderSize.isHidden = true;
+    }
+    
+    private func setupBackground(_ v:UIView)->Void{
+        v.layer.backgroundColor = UIColor.gray.cgColor;
+        v.layer.cornerRadius = 8;
+        view.addSubview(v);
     }
     
     private func setValuesToRangeSlider(to slider:RangeSlider, lower:Int, upper:Int, maxDecimal:CGFloat){
         slider.maxDecimal = maxDecimal;
         slider.minValue = lower;
         slider.maxValue = upper;
-        slider.lowerValue = CGFloat(lower) / maxDecimal;
-        slider.upperValue = CGFloat(upper) / maxDecimal;
     }
     
     private func setPostionToRangeSlider(with slider:RangeSlider, offsetY:CGFloat)->Void{
@@ -123,5 +131,7 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     override func viewDidLayoutSubviews() {
         setPostionToRangeSlider(with: rangeSliderPrice, offsetY: 60);
         setPostionToRangeSlider(with: rangeSliderSize, offsetY: 140);
+        segmentedRangeSlider.frame = CGRect(x: 0, y: 0, width: view.bounds.width - 75, height: 8);
+        segmentedRangeSlider.center = CGPoint(x: view.center.x, y: view.center.y+140);
     }
 }
