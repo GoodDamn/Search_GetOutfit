@@ -19,8 +19,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 limit:String = "10",
                 gender:String = "male",
                 rangePrices:[Int] = [0,600_000],
-                rangeSizes:[Int] = [1,70],
+                rangeSizes:String = "",
                 order:[String] = ["name","asc"];
+    
+    private var isIntSize:Bool = true;
     
     private let dateFormatter = ISO8601DateFormatter();
     private let calendar = Calendar.current;
@@ -101,8 +103,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     }
     
     private func getData(){
-        /*&size=gte.\(self.rangeSizes[0])&size=lte.\(self.rangeSizes[1])*/
-        let url = "http://spb.getoutfit.co:3000/items?name=like.*\(self.nameParam())*&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])";
+        let url = "http://spb.getoutfit.co:3000/items?name=like.*\(self.nameParam())*&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
         print("URL:",url);
         if let query = URL(string: url){
             print("shared");
@@ -116,6 +117,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 DispatchQueue.main.async {
                     do {
                         self.items = try JSONDecoder().decode([Clothes].self, from: data);
+                        if (self.items!.count != 0){
+                            self.isIntSize = Int(self.items![0].size) != nil;
+                        }
                         self.tableV_results.reloadData();
                         
                     } catch {
@@ -129,6 +133,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     }
     
     private func search() -> Void {
+        self.rangeSizes = "";
         tf_search.resignFirstResponder();
         getData();
     }
@@ -168,14 +173,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                     || gender != self.gender
                     || prices[0] != self.rangePrices[0]
                     || prices[1] != self.rangePrices[1]
-                    || sizes[0] != self.rangeSizes[0]
-                    || sizes[1] != self.rangeSizes[1]
+                    || sizes != self.rangeSizes
                     || order[0] != self.order[0]
                     || order[1] != self.order[1]) {
                 self.userDef.setValue(colors!, forKey: "colors");
                 self.userDef.setValue(limit, forKey: "limit");
                 self.userDef.setValue(gender, forKey: "gender");
-                self.userDef.setValue(sizes, forKey: "sizes");
                 self.userDef.setValue(prices, forKey: "prices");
                 self.userDef.setValue(order, forKey: "order");
                 self.limit = limit;
@@ -186,6 +189,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 self.getData();
             }
         }
+        userDef.setValue(isIntSize, forKey: "intSize");
         present(vc, animated: true, completion: nil);
     }
     
@@ -234,8 +238,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         limit = userDef.string(forKey: "limit") ?? limit;
         gender = userDef.string(forKey: "gender") ?? gender;
         rangePrices = userDef.value(forKey: "prices") as? [Int] ?? rangePrices;
-        rangeSizes = userDef.value(forKey: "sizes") as? [Int] ?? rangeSizes;
-        
+
         order = userDef.value(forKey: "order") as? [String] ?? order;
         getData();
     }

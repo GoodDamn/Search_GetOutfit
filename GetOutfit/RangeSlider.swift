@@ -12,16 +12,12 @@ class RangeSlider: UIControl{
     private var lowerValue: CGFloat = 0.2;
     private var upperValue: CGFloat = 0.8;
     
-    var maxDecimal: CGFloat = 600_000;
+    var minValue: Int = 0;
+    var maxValue: Int = 1;
     
-    var minValue: Int = 0{
+    var maxDecimal: CGFloat = 100{
         didSet{
             lowerValue = CGFloat(minValue)/maxDecimal;
-            updateLayerFrames();
-        }
-    };
-    var maxValue: Int = 1{
-        didSet{
             upperValue = CGFloat(maxValue)/maxDecimal;
             updateLayerFrames();
         }
@@ -64,6 +60,22 @@ class RangeSlider: UIControl{
         return CGPoint(x: x-offsetX, y: (bounds.height - thumbImage.size.height) / 2.0 - offsetY);
     }
     
+    private func setupComponents(_ label:UILabel, _ thumb:UIImageView)->Void{
+        label.layer.cornerRadius = 6;
+        label.layer.backgroundColor = UIColor.lightGray.cgColor;
+        label.layer.masksToBounds = true;
+        label.backgroundColor = .lightGray;
+        label.textAlignment = .center;
+        
+        thumb.layer.shadowRadius = 3;
+        thumb.layer.shadowColor = UIColor.black.cgColor;
+        thumb.layer.shadowOpacity = 0.75;
+        thumb.layer.shadowOffset = CGSize(width: 0.5, height: 0.7);
+        
+        addSubview(thumb);
+        addSubview(label);
+    }
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder);
     }
@@ -73,35 +85,8 @@ class RangeSlider: UIControl{
         
         //layer.addSublayer(rangeLayer);
         
-        upperLabel.layer.cornerRadius = 6;
-        upperLabel.layer.backgroundColor = UIColor.lightGray.cgColor;
-        upperLabel.layer.masksToBounds = true;
-        
-        lowerLabel.layer.cornerRadius = 6;
-        lowerLabel.layer.backgroundColor = UIColor.lightGray.cgColor;
-        lowerLabel.layer.masksToBounds = true;
-        
-        lowerThumb.layer.shadowRadius = 3;
-        upperThumb.layer.shadowRadius = 3;
-        
-        lowerThumb.layer.shadowColor = UIColor.black.cgColor;
-        upperThumb.layer.shadowColor = UIColor.black.cgColor;
-        
-        lowerThumb.layer.shadowOpacity = 0.75;
-        upperThumb.layer.shadowOpacity = 0.75;
-        
-        lowerThumb.layer.shadowOffset = CGSize(width: 0.5, height: 0.7);
-        upperThumb.layer.shadowOffset = CGSize(width: 0.5, height: 0.7);
-        
-        lowerLabel.backgroundColor = .lightGray;
-        upperLabel.backgroundColor = .lightGray;
-        lowerLabel.textAlignment = .center;
-        upperLabel.textAlignment = .center;
-        
-        addSubview(lowerThumb);
-        addSubview(upperThumb);
-        addSubview(lowerLabel);
-        addSubview(upperLabel);
+        setupComponents(lowerLabel, lowerThumb);
+        setupComponents(upperLabel, upperThumb);
         
         updateLayerFrames();
     }

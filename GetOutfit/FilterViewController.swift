@@ -16,8 +16,9 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     private var selectedColors:[String]? = nil;
     
     private let colors:[UIColor] = [UIColor.red,UIColor.black,UIColor.blue,UIColor.yellow,UIColor.gray,UIColor.orange,UIColor.systemPink,UIColor.green,UIColor.purple,UIColor.white,UIColor.brown];
+    private var isIntSize:Bool = true;
     
-    public var didQuit:((String, [String]?, String, [Int], [Int], [String])->Void)?
+    public var didQuit:((String, [String]?, String, [Int], String, [String])->Void)?;
     
     @IBOutlet weak var tf_limit: UITextField!;
     @IBOutlet weak var collectionV_colors: UICollectionView!;
@@ -25,9 +26,9 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     @IBOutlet weak var segmentControlGender: UISegmentedControl!;
     @IBOutlet weak var segmentControlSort: UISegmentedControl!;
     @IBOutlet weak var segmentControlAsc: UISegmentedControl!;
-    private let rangeSliderPrice = RangeSlider(frame: .zero),
-                rangeSliderSize = RangeSlider(frame: .zero);
-    private let segmentedRangeSlider = SegmentedRangeSlider(frame: .zero);
+    private let rangeSliderPrice = RangeSlider(frame: .zero);
+    private var rangeSliderSize:RangeSlider? = nil;
+    private var segmentedRangeSlider:SegmentedRangeSlider? = nil;
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -64,12 +65,24 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        
+        var queryParamSize = "";
+        if (!isIntSize){
+            queryParamSize = "&size=in.(";
+            let arr = segmentedRangeSlider!.segmentsArray;
+            let min = arr.firstIndex(of: segmentedRangeSlider!.minValue)!,
+                max = arr.firstIndex(of: segmentedRangeSlider!.maxValue)!;
+            for i in min...max{
+                queryParamSize += arr[i];
+                queryParamSize += (i != max ? "," : ")");
+            }
+        } else {
+            queryParamSize="&size=gte.\(rangeSliderSize!.minValue.description)&size=lte.\(rangeSliderSize!.maxValue.description)"
+        }
         didQuit?(tf_limit.text!, // 1
                  selectedColors, // 2
                  segmentControlGender.titleForSegment(at:  segmentControlGender.selectedSegmentIndex)!, // 3
                  [rangeSliderPrice.minValue, rangeSliderPrice.maxValue], // 4
-            [rangeSliderSize.minValue, rangeSliderSize.maxValue],// 5
+            queryParamSize,// 5
             [segmentControlSort.titleForSegment(at: segmentControlSort.selectedSegmentIndex)!,
              segmentControlAsc.selectedSegmentIndex == 0 ? "asc":"desc"]/*6*/);
     }
@@ -95,20 +108,24 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
             segmentControlAsc.selectedSegmentIndex = (ord[1] == "asc" ? 0:1);
         }
         
-        segmentedRangeSlider.segmentsArray = ["XS","S","M","L","XL","XXL","XXXL"];
-        segmentedRangeSlider.minValue = "S";
-        segmentedRangeSlider.maxValue = "XXL";
-        
-        setupBackground(segmentedRangeSlider);
         setupBackground(rangeSliderPrice);
-        setupBackground(rangeSliderSize);
         
         let prices = userDef.value(forKey: "prices") as? [Int] ?? [0,600_000];
         setValuesToRangeSlider(to: rangeSliderPrice, lower: prices[0], upper: prices[1], maxDecimal: 600_000);
-        let sizes = userDef.value(forKey: "sizes") as? [Int] ?? [1,70];
-        setValuesToRangeSlider(to: rangeSliderSize, lower: sizes[0], upper: sizes[1], maxDecimal: 70);
         
-        rangeSliderSize.isHidden = true;
+        isIntSize = userDef.bool(forKey: "intSize");
+        if (isIntSize){
+            rangeSliderSize = RangeSlider(frame: .zero);
+            setupBackground(rangeSliderSize!);
+            setValuesToRangeSlider(to: rangeSliderSize!, lower: 1, upper: 70, maxDecimal: 70);
+        } else {
+            segmentedRangeSlider=SegmentedRangeSlider(frame: .zero);
+            segmentedRangeSlider!.minValue = "S";
+            segmentedRangeSlider!.maxValue = "XXL";
+            segmentedRangeSlider!.segmentsArray = ["XS","S","M","L","XL","XXL","XXXL"];
+             
+            setupBackground(segmentedRangeSlider!);
+        }
     }
     
     private func setupBackground(_ v:UIView)->Void{
@@ -118,9 +135,9 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     }
     
     private func setValuesToRangeSlider(to slider:RangeSlider, lower:Int, upper:Int, maxDecimal:CGFloat){
-        slider.maxDecimal = maxDecimal;
         slider.minValue = lower;
         slider.maxValue = upper;
+        slider.maxDecimal = maxDecimal;
     }
     
     private func setPostionToRangeSlider(with slider:RangeSlider, offsetY:CGFloat)->Void{
@@ -130,8 +147,12 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     override func viewDidLayoutSubviews() {
         setPostionToRangeSlider(with: rangeSliderPrice, offsetY: 60);
-        setPostionToRangeSlider(with: rangeSliderSize, offsetY: 140);
-        segmentedRangeSlider.frame = CGRect(x: 0, y: 0, width: view.bounds.width - 75, height: 8);
-        segmentedRangeSlider.center = CGPoint(x: view.center.x, y: view.center.y+140);
+        if (rangeSliderSize != nil) {
+            setPostionToRangeSlider(with: rangeSliderSize!, offsetY: 140);
+        } else {
+            segmentedRangeSlider!.frame = CGRect(x: 0, y: 0, width: view.bounds.width - 75, height: 8);
+            segmentedRangeSlider!.center = CGPoint(x: view.center.x, y: view.center.y+140);
+        }
+        
     }
 }
