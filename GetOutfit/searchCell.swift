@@ -15,4 +15,5 @@ class SearchCell: UITableViewCell{
     @IBOutlet weak var l_vendor: UILabel!;
     @IBOutlet weak var l_oldPrice: UILabel!;
     @IBOutlet weak var l_modified: UILabel!;
+    @IBOutlet weak var l_category: UILabel!;
 }

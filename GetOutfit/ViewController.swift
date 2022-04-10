@@ -12,6 +12,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     @IBOutlet weak var tf_search: UITextField!;
     @IBOutlet weak var tableV_results: UITableView!;
     @IBOutlet weak var b_filter: UIButton!;
+    @IBOutlet weak var l_nothing: UILabel!;
     
     private var items:[Clothes]? = nil;
     private let userDef:UserDefaults = UserDefaults();
@@ -20,7 +21,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 gender:String = "male",
                 rangePrices:[Int] = [0,600_000],
                 rangeSizes:String = "",
-                order:[String] = ["name","asc"];
+                order:[String] = ["name","asc"],
+                categoriesID:Set<Int> = [];
     
     private var isIntSize:Bool = true;
     
@@ -35,6 +37,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         let vendor: String;
         let old_price:Int?;
         let modified_time:String;
+        let category_id:Int;
+    }
+    
+    struct Category: Decodable {
+        let name: String;
+        let id: Int;
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -80,21 +88,22 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
             cell.l_oldPrice.attributedText = strikeThrougthAttr;
         }
         
-        if let url = URL(string: items![indexPath.row].pictures[0]){
-            URLSession.shared.dataTask(with: url, completionHandler: {
-                data, response, error in
-                if (error != nil){
-                    print("Error from the server while loading image: ",error);
-                    return;
-                }
-                
-                DispatchQueue.main.async {
-                    cell.icon.image = UIImage(data: data!, scale: UIScreen.main.nativeScale/2-0.65);
-                }
-            }).resume();
-        } else {
-            print("Image haven't been loaded. URL is nil");
-        }
+        loadData(stringURL: items![indexPath.row].pictures[0], mainHandler: {
+            data in
+            cell.icon.image = UIImage(data: data!, scale: UIScreen.main.nativeScale/2-0.65);
+        })
+        
+        loadData(stringURL: "http://spb.getoutfit.co:3000/categories?id=eq.\(items![indexPath.row].category_id)", mainHandler: {
+            data in
+            do{
+                let category:[Category] = try JSONDecoder().decode([Category].self, from: data!);
+                cell.l_category.text = category[0].name;
+                self.categoriesID.insert(category[0].id);
+            }catch{
+                print("Error in main thread when decode JSON category:",error.localizedDescription);
+            }
+        })
+        
         return cell;
     }
     
@@ -102,34 +111,45 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         return val < 10 ? ("0"+val.description) : val.description;
     }
     
-    private func getData(){
-        let url = "http://spb.getoutfit.co:3000/items?name=like.*\(self.nameParam())*&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
-        print("URL:",url);
-        if let query = URL(string: url){
-            print("shared");
-            URLSession.shared.dataTask(with: query, completionHandler: {
-                data, response, error in
-                guard let data = data, error == nil else{
+    private func loadData(stringURL:String, mainHandler: @escaping ((Data?)->Void))->Void{
+        if let url = URL(string: stringURL){
+            URLSession.shared.dataTask(with: url, completionHandler: {
+                (data,response, error) in
+                if (error != nil){
+                    print("Error from the server while loading data:",error);
                     print(response);
-                    print("URLTask contains some errors:",error);
                     return;
                 }
+                
                 DispatchQueue.main.async {
-                    do {
-                        self.items = try JSONDecoder().decode([Clothes].self, from: data);
-                        if (self.items!.count != 0){
-                            self.isIntSize = Int(self.items![0].size) != nil;
-                        }
-                        self.tableV_results.reloadData();
-                        
-                    } catch {
-                        print("Error in main thread when decode JSON:",error.localizedDescription);
-                    }
+                    mainHandler(data);
                 }
             }).resume();
         } else {
             print("URL is nil");
         }
+    }
+    
+    private func getData(){
+        let url = "http://spb.getoutfit.co:3000/items?name=like.*\(self.nameParam())*&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
+        print("URL:",url);
+        
+        loadData(stringURL: url, mainHandler: {
+            data in
+            do {
+                self.items = try JSONDecoder().decode([Clothes].self, from: data!);
+                if (self.items!.count != 0){
+                    self.l_nothing.isHidden = true;
+                    self.isIntSize = Int(self.items![0].size) != nil;
+                } else {
+                    self.l_nothing.isHidden = false;
+                }
+                self.tableV_results.reloadData();
+                
+            } catch {
+                print("Error in main thread when decode JSON:",error.localizedDescription);
+            }
+        });
     }
     
     private func search() -> Void {
@@ -238,7 +258,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         limit = userDef.string(forKey: "limit") ?? limit;
         gender = userDef.string(forKey: "gender") ?? gender;
         rangePrices = userDef.value(forKey: "prices") as? [Int] ?? rangePrices;
-
         order = userDef.value(forKey: "order") as? [String] ?? order;
         getData();
     }
