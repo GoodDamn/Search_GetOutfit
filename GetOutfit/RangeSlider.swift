@@ -41,6 +41,7 @@ class RangeSlider: UIControl{
         }
     }
     
+    // Update layer frames, position labels and thumbs, and update current values
     private func updateLayerFrames(){
         lowerLabel.text = minValue.description;
         upperLabel.text = maxValue.description;
@@ -51,6 +52,7 @@ class RangeSlider: UIControl{
         upperLabel.frame = CGRect(origin: thumbOriginForValue(upperValue,upperLabel.frame.width/3,20), size: upperLabel.frame.size);
     }
     
+    // Calculate position in points depend on value from 0.0 to 1.0.
     func positionForValue(_ value: CGFloat) -> CGFloat{
         return bounds.width * value;
     }
@@ -105,6 +107,8 @@ class RangeSlider: UIControl{
         rangeLayer.strokeStart = 0.5;
         rangeLayer.strokeEnd = 1.0;
         rangeLayer.lineCap = .round;*/
+        
+        // Render in 'thumb' image
         let thumbLayer = CAShapeLayer();
         thumbLayer.path = UIBezierPath(arcCenter: CGPoint(x: 15, y: 15), radius: 15, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath;
         thumbLayer.fillColor = UIColor.white.cgColor;

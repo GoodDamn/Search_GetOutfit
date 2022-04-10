@@ -49,6 +49,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         return items?.count ?? 0;
     }
     
+    // Show results from JSON
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableV_results.dequeueReusableCell(withIdentifier: "searchCell", for: indexPath) as! SearchCell;
         cell.l_price.text = items![indexPath.row].price.description + " ₽";
@@ -57,6 +58,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         cell.l_size.text = items![indexPath.row].size;
         cell.l_vendor.text = "By: " + items![indexPath.row].vendor;
        
+        // Set up date to correct form and show it
         let components = calendar.dateComponents([.year, .month, .day, .hour,.minute], from: dateFormatter.date(from: items![indexPath.row].modified_time)!);
         
         let day = components.day!;
@@ -66,6 +68,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         
         cell.l_modified.text = addZero(day)+"."+addZero(month)+"."+components.year!.description+" "+addZero(hour)+":"+addZero(minute);
         
+        // Add 'Clock' icon to UILabel with modified time
         let attach = NSTextAttachment();
         let h = cell.l_modified.bounds.height;
         let img = UIImage(systemName: "clock.arrow.circlepath")!;
@@ -80,6 +83,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         attr.append(a);
         cell.l_modified.attributedText = attr;
         
+        // Show item's old price with strikeThrougth style
         if let oldPrice = items![indexPath.row].old_price{
             cell.l_oldPrice.text = oldPrice.description + " ₽";
             let strikeThrougthAttr = NSMutableAttributedString(string: cell.l_oldPrice.text!);
@@ -88,11 +92,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
             cell.l_oldPrice.attributedText = strikeThrougthAttr;
         }
         
+        // Load item's picture from URL
         loadData(stringURL: items![indexPath.row].pictures[0], mainHandler: {
             data in
             cell.icon.image = UIImage(data: data!, scale: UIScreen.main.nativeScale/2-0.65);
         })
         
+        // Load item's category ID and name
         loadData(stringURL: "http://spb.getoutfit.co:3000/categories?id=eq.\(items![indexPath.row].category_id)", mainHandler: {
             data in
             do{
@@ -108,6 +114,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         return cell;
     }
     
+    // Add zero to begin for date's option(day,month,hour and etc.)
     private func addZero(_ val:Int)->String{
         return val < 10 ? ("0"+val.description) : val.description;
     }
@@ -131,20 +138,23 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         }
     }
     
+    // API call to http://spb.getoutfit.co:3000
     private func getData(_ target:String){
         let url = "http://spb.getoutfit.co:3000/items?\(target)&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
         print("URL:",url);
-        
+        // Load JSON
         loadData(stringURL: url, mainHandler: {
             data in
             do {
                 self.items = try JSONDecoder().decode([Clothes].self, from: data!);
+                // Check if results exist
                 if (self.items!.count != 0){
                     self.l_nothing.isHidden = true;
                     self.isIntSize = Int(self.items![0].size) != nil;
                 } else {
                     self.l_nothing.isHidden = false;
                 }
+                // Update table view
                 self.tableV_results.reloadData();
                 
             } catch {
@@ -159,10 +169,13 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         getData("name=like.*\(self.nameParam())*");
     }
     
+    // Returns word in percent encoding for correct url
+    // By default, if search input field is empty, returns *trainers*
     private func nameParam()->String{
         return tf_search.text!.isEmpty ? "trainers" : tf_search.text!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!;
     }
     
+    // Generate 'color' argument for URL
     private func setColorsParam(with color:[String])->Void{
         if !color.isEmpty{
             colors = "&color=in.(";
@@ -178,17 +191,21 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         }
     }
     
+    // Keyboard action
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         search();
         return true;
     }
     
+    // Focus on FilterViewController
     @IBAction func filter(_ sender: UIButton) {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "filter") as! FilterViewController;
+        // 'didQuit' handler if filterViewController will appear
         vc.didQuit = {
             (limit, colors, gender, prices, sizes, order) in
             let c = self.colors;
             self.setColorsParam(with: colors!);
+            // Check if we have some changes in filtering
             if (limit != self.limit
                     || c != self.colors
                     || gender != self.gender
@@ -218,7 +235,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         search();
     }
     
-    private var prevPoint:CGPoint = CGPoint(x: 0.0, y: 0.0);
     
     private func drawLine(_ path:UIBezierPath,x:CGFloat,y:CGFloat )->Void{
         path.addLine(to: CGPoint(x: x, y: y));
@@ -248,10 +264,12 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         shapeLayer.lineJoin = .round;
         b_filter.layer.addSublayer(shapeLayer);
         
+        // Set up table view
         self.tableV_results.dataSource = self;
         self.tableV_results.delegate = self;
         self.tableV_results.rowHeight = 120.0;
         
+        // Load params from local storage
         if let color = userDef.value(forKey: "colors") as? [String] {
             setColorsParam(with: color);
         }

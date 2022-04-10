@@ -35,6 +35,7 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
         return colors.count;
     }
     
+    // Add color element to collection
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionV_colors.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as! ColorCell;
@@ -52,6 +53,7 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
         return cell;
     }
     
+    // If user (-un)checked color for filtering.
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let checkMark = (collectionView.cellForItem(at: indexPath) as? ColorCell)?.checkMark;
         if !checkMark!.isHidden {
@@ -64,8 +66,10 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
         }
     }
     
+    // Pass data to ViewController througth 'didQuit' handler
     override func viewWillDisappear(_ animated: Bool) {
         var queryParamSize = "";
+        // 'Size' parameter to URL-argument
         if (!isIntSize){
             queryParamSize = "&size=in.(";
             let arr = segmentedRangeSlider!.segmentsArray;
@@ -90,6 +94,7 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
     @IBAction func close(_ sender: UIButton) {
         dismiss(animated: true, completion: nil);
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad();
         
@@ -116,6 +121,7 @@ class FilterViewController: UIViewController, UICollectionViewDelegate, UICollec
         let prices = userDef.value(forKey: "prices") as? [Int] ?? [0,600_000];
         setValuesToRangeSlider(to: rangeSliderPrice, lower: prices[0], upper: prices[1], maxDecimal: 600_000);
         
+        // Check if we need integer range slider or semented range slider.
         isIntSize = userDef.bool(forKey: "intSize");
         if (isIntSize){
             rangeSliderSize = RangeSlider(frame: .zero);
