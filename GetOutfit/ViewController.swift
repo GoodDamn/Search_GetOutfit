@@ -22,7 +22,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 rangePrices:[Int] = [0,600_000],
                 rangeSizes:String = "",
                 order:[String] = ["name","asc"],
-                categoriesID:Set<Int> = [];
+                categoryID:Int = 1573;
     
     private var isIntSize:Bool = true;
     
@@ -98,7 +98,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
             do{
                 let category:[Category] = try JSONDecoder().decode([Category].self, from: data!);
                 cell.l_category.text = category[0].name;
-                self.categoriesID.insert(category[0].id);
+                self.categoryID = category[0].id;
+                self.userDef.setValue(category[0].id, forKey: "recommends");
             }catch{
                 print("Error in main thread when decode JSON category:",error.localizedDescription);
             }
@@ -130,8 +131,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         }
     }
     
-    private func getData(){
-        let url = "http://spb.getoutfit.co:3000/items?name=like.*\(self.nameParam())*&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
+    private func getData(_ target:String){
+        let url = "http://spb.getoutfit.co:3000/items?\(target)&limit=\(self.limit)\(self.colors)&gender=eq.\(self.gender)&price=gte.\(self.rangePrices[0])&price=lte.\(self.rangePrices[1])&order=\(self.order[0]).\(self.order[1])\(self.rangeSizes)";
         print("URL:",url);
         
         loadData(stringURL: url, mainHandler: {
@@ -155,7 +156,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     private func search() -> Void {
         self.rangeSizes = "";
         tf_search.resignFirstResponder();
-        getData();
+        getData("name=like.*\(self.nameParam())*");
     }
     
     private func nameParam()->String{
@@ -206,7 +207,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 self.rangePrices = prices;
                 self.rangeSizes = sizes;
                 self.order = order;
-                self.getData();
+                self.getData("name=like.*\(self.nameParam())*");
             }
         }
         userDef.setValue(isIntSize, forKey: "intSize");
@@ -259,8 +260,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         gender = userDef.string(forKey: "gender") ?? gender;
         rangePrices = userDef.value(forKey: "prices") as? [Int] ?? rangePrices;
         order = userDef.value(forKey: "order") as? [String] ?? order;
-        getData();
+        categoryID = userDef.value(forKey: "recommends") as? Int ?? categoryID;
+        getData("category_id=eq.\(categoryID)");
     }
-
-
 }
