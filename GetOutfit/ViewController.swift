@@ -23,6 +23,7 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
                 rangeSizes:String = "",
                 order:[String] = ["name","asc"],
                 categoryID:Int = 1573;
+    private let imgModified:UIImage = UIImage(systemName: "clock.arrow.circlepath")!;
     
     private var isIntSize:Bool = true;
     
@@ -70,12 +71,8 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         
         // Add 'Clock' icon to UILabel with modified time
         let attach = NSTextAttachment();
-        let h = cell.l_modified.bounds.height;
-        let img = UIImage(systemName: "clock.arrow.circlepath")!;
-        img.withTintColor(UIColor.systemGray);
-        img.withRenderingMode(.alwaysTemplate);
-        attach.image = img;
-        attach.bounds = CGRect(x: 0, y: -h+9, width: h, height: h);
+        attach.image = imgModified;
+        attach.bounds = CGRect(x: 0, y: -3, width: 12, height: 12);
         let attr = NSMutableAttributedString();
         attr.append(NSAttributedString(attachment: attach));
         let a = NSMutableAttributedString(string: "  "+cell.l_modified.text!);
@@ -263,6 +260,9 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
         shapeLayer.lineCap = .round;
         shapeLayer.lineJoin = .round;
         b_filter.layer.addSublayer(shapeLayer);
+        
+        imgModified.withTintColor(UIColor.systemGray);
+        imgModified.withRenderingMode(.alwaysTemplate);
         
         // Set up table view
         self.tableV_results.dataSource = self;
